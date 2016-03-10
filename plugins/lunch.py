@@ -1,12 +1,11 @@
 import datetime
+import json
 import random
 from functools import lru_cache
 import re
 import requests
 from bs4 import BeautifulSoup, Tag
 from slackbot.bot import listen_to
-
-RESTAURANTS = list()
 
 
 class Lunch(object):
@@ -177,26 +176,57 @@ class Wiggos(Lunch):
         return menu_items
 
 
-class Panini(NoDaily):
-    url = "http://www.panini.nu"
+class Foodora(Lunch):
+    url = ""
+
+    def parse_page(self, excluded_headers):
+        result = requests.get(self.url)
+        soup = BeautifulSoup(result.content, "html.parser")
+        h3s = soup.find_all("h3", {"class": "menu__items__title"})
+        menu_items = []
+        for h3 in h3s:
+            if h3.get_text().strip() not in excluded_headers:
+                current = h3.nextSibling
+                while current is not None and current.name != 'h3':
+                    if isinstance(current, Tag):
+                        items = current.find_all("div", {"class": "menu__item__name"})
+                        if items is not None:
+                            menu_items.extend([item.get_text().strip() for item in items])
+                    current = current.nextSibling
+        return menu_items
+
+
+class Panini(Foodora):
+    url = "https://www.foodora.se/restaurant/hk5l/panini-hamngatan-15"
 
     @staticmethod
     def name():
         return "Panini"
 
+    @lru_cache(32)
+    def get(self, year, month, day):
+        return self.parse_page(["Mindre måltider", "Dryck"])
 
-RESTAURANTS.append(Arsenalen())
-RESTAURANTS.append(Subway())
-RESTAURANTS.append(Eat())
-RESTAURANTS.append(Panini())
-RESTAURANTS.append(Wiggos())
+
+class SenStreetKitchen(Foodora):
+    url = "https://www.foodora.se/restaurant/s6lx/sen-street-kitchen"
+
+    @staticmethod
+    def name():
+        return "Sen Street Kitchen"
+
+    @lru_cache(32)
+    def get(self, year, month, day):
+        return self.parse_page(["Smårätter", "Dryck"])
+
+
+RESTAURANTS = [Arsenalen(), Subway(), Eat(), Panini(), Wiggos(), SenStreetKitchen()]
 
 
 def lunches(year, month, day, where=None):
     payload = dict()
     if where is not None:
-        where = [w.strip() for w in where.split(',')]
-
+        where = [w.strip().lower() for w in where.split(',')]
     for restaurant in RESTAURANTS:
         if where is None or restaurant.name().lower() in where:
             menu = restaurant.get(year, month, day)
@@ -230,7 +260,8 @@ def lunch_command(message):
 @listen_to("^!lunch suggest (\d+)")
 def lunch_suggest_command(message, num=1):
     num = min(int(num), len(RESTAURANTS))
-    message.send(bulletize([r.name() for r in random.sample(RESTAURANTS, int(num))]))
+    names = ",".join([r.name() for r in random.sample(RESTAURANTS, int(num))])
+    lunch_menu_command(message, names)
 
 
 @listen_to("^!lunch list")
@@ -244,6 +275,16 @@ def lunch_menu_command(message, restaurant):
     try:
         menus = lunches(today.year, today.month, today.day, restaurant)
         for r, menu in menus.items():
-            message.send(fallback(r, menu['menu']))
+            if len(menu['menu']) < 6:
+                message.send(fallback(r, menu['menu']))
+            else:
+                attachments = [{
+                    'pretext': "*{0}*".format(r),
+                    'fallback': fallback(r, menu['menu'][0:3]),
+                    'text': bulletize(menu['menu']),
+                    'color': 'good',
+                    'mrkdwn_in': ['pretext', 'text']
+                }]
+                message.send_webapi('', json.dumps(attachments))
     except:
         message.send("Something went wrong when scraping the restaurant page.")
