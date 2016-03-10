@@ -1,9 +1,9 @@
 import datetime
+import random
 from functools import lru_cache
-from flask import json
 import re
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 from slackbot.bot import listen_to
 
 RESTAURANTS = list()
@@ -49,6 +49,11 @@ class Lunch(object):
             'sat': 6,
             'sun': 7
            }
+
+class NoDaily(Lunch):
+
+    def get(self, year, month, day):
+        return ["No daily menu available, see " + self.url]
 
 
 class Arsenalen(Lunch):
@@ -147,9 +152,44 @@ class Eat(Lunch):
         return menu_items
 
 
+class Wiggos(Lunch):
+    url = "http://wiggowraps.se/menus/huvudmeny/"
+
+    @staticmethod
+    def name():
+        return "Wiggos"
+
+    @lru_cache(32)
+    def get(self, year, month, day):
+        result = requests.get(self.url)
+        soup = BeautifulSoup(result.content, "html.parser")
+        h2s = soup.find("div", {"class": "entry-content"}).find_all("h2")
+        menu_items = []
+        for h2 in h2s:
+            if h2.get_text().strip() not in ["Snacks", "Dryck"]:
+                current = h2.nextSibling
+                while current.name != 'h2':
+                    if isinstance(current, Tag):
+                        items = current.find_all("span", {"class": "foodmenudesc"})
+                        if items is not None:
+                            menu_items.extend([item.get_text().strip() for item in items])
+                    current = current.nextSibling
+        return menu_items
+
+
+class Panini(NoDaily):
+    url = "http://www.panini.nu"
+
+    @staticmethod
+    def name():
+        return "Panini"
+
+
 RESTAURANTS.append(Arsenalen())
 RESTAURANTS.append(Subway())
 RESTAURANTS.append(Eat())
+RESTAURANTS.append(Panini())
+RESTAURANTS.append(Wiggos())
 
 
 def lunches(year, month, day, where=None):
@@ -166,7 +206,7 @@ def lunches(year, month, day, where=None):
 
 
 def restaurants():
-    return '\n'.join([" • " + restaurant.name() for restaurant in RESTAURANTS])
+    return '\n'.join([" • " + restaurant.name() for restaurant in sorted(RESTAURANTS, key=lambda k: k.name())])
 
 
 def fallback(restaurant, items):
@@ -179,12 +219,31 @@ def bulletize(items, bullet='•'):
 
 
 @listen_to("^!lunch$")
-@listen_to("^!lunch (.*)")
-def lunch_command(message, restaurant=None):
+def lunch_command(message):
+    help = ["!lunch list - shows all restaurants",
+            "!lunch suggest - pick a random restaurant",
+            "!lunch menu <restaurant> - show menu for the selected restaurant(s)"]
+    message.send("\n".join(help))
+
+
+@listen_to("^!lunch suggest$")
+@listen_to("^!lunch suggest (\d+)")
+def lunch_suggest_command(message, num=1):
+    num = min(int(num), len(RESTAURANTS))
+    message.send(bulletize([r.name() for r in random.sample(RESTAURANTS, int(num))]))
+
+
+@listen_to("^!lunch list")
+def lunch_list_command(message):
+    message.send(restaurants())
+
+
+@listen_to("^!lunch menu (.*)")
+def lunch_menu_command(message, restaurant):
     today = datetime.datetime.today()
-    if restaurant is not None and restaurant.lower() == 'list':
-        message.send(restaurants())
-    else:
-        menues = lunches(today.year, today.month, today.day, restaurant)
-        for r, menu in menues.items():
+    try:
+        menus = lunches(today.year, today.month, today.day, restaurant)
+        for r, menu in menus.items():
             message.send(fallback(r, menu['menu']))
+    except:
+        message.send("Something went wrong when scraping the restaurant page.")
