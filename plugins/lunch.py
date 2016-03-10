@@ -151,49 +151,96 @@ class Eat(Lunch):
         return menu_items
 
 
-class Wiggos(Lunch):
+class HeaderListParser(object):
+    """
+    Parses documents on the form
+    <A class="a">subsection</A>
+    <B class="b">
+        <C class="c">Food item</C>
+        <D class="d">Food description</D>
+        ...
+    </B>
+    ...
+    <A>...
+    """
+    url = ""
+
+    def parse_page(self, soup=None,
+                   header_elem="h3", header_elem_class=None,
+                   exclude_headers=None,
+                   food_wrapper=None, food_wrapper_class=None,
+                   name_elem=None, name_class=None,
+                   desc_elem=None, desc_class=None):
+
+        headers = soup.find_all(header_elem, {"class": header_elem_class} if header_elem_class is not None else {})
+        menu_items = []
+        for header in headers:
+            if header.get_text().strip() not in exclude_headers:
+                current = header.nextSibling
+                while current is not None and current.name != header_elem:
+                    if isinstance(current, Tag):
+                        items = current.find_all(food_wrapper,
+                                                 {"class": food_wrapper_class} if food_wrapper_class is not None else {})
+                        if items is not None:
+                            for item in items:
+                                name = item.find(name_elem, {"class": name_class}).get_text().strip()
+                                desc = item.find(desc_elem, {"class": desc_class})
+                                if desc is not None:
+                                    desc = desc.get_text().strip()
+                                    menu_items.append("{0}: _{1}_".format(name, desc))
+                                else:
+                                    menu_items.append(name)
+                    current = current.nextSibling
+        return menu_items
+
+
+class Wiggos(Lunch, HeaderListParser):
     url = "http://wiggowraps.se/menus/huvudmeny/"
 
     @staticmethod
     def name():
         return "Wiggos"
 
+    def parse_page(self, soup=None,
+                   header_elem="h3", header_elem_class="None",
+                   exclude_headers=None,
+                   food_wrapper=None, food_wrapper_class=None,
+                   name_elem=None, name_class=None,
+                   desc_elem=None, desc_class=None):
+
+        return super(Wiggos, self).parse_page(soup,
+                                              header_elem="h2", exclude_headers=["Snacks", "Dryck"],
+                                              food_wrapper="span", food_wrapper_class="foodmenuwrap",
+                                              name_elem="span", name_class="foodmenudesc",
+                                              desc_elem="span", desc_class="fooddesc")
+
     @lru_cache(32)
     def get(self, year, month, day):
         result = requests.get(self.url)
         soup = BeautifulSoup(result.content, "html.parser")
-        h2s = soup.find("div", {"class": "entry-content"}).find_all("h2")
-        menu_items = []
-        for h2 in h2s:
-            if h2.get_text().strip() not in ["Snacks", "Dryck"]:
-                current = h2.nextSibling
-                while current.name != 'h2':
-                    if isinstance(current, Tag):
-                        items = current.find_all("span", {"class": "foodmenudesc"})
-                        if items is not None:
-                            menu_items.extend([item.get_text().strip() for item in items])
-                    current = current.nextSibling
-        return menu_items
+        content = soup.find("div", {"class": "entry-content"})
+        return self.parse_page(content)
 
 
-class Foodora(Lunch):
+class Foodora(Lunch, HeaderListParser):
     url = ""
 
-    def parse_page(self, excluded_headers):
+    def parse_page(self, soup=None,
+                   header_elem="h3", header_elem_class=None,
+                   exclude_headers=None,
+                   food_wrapper=None, food_wrapper_class=None,
+                   name_elem=None, name_class=None,
+                   desc_elem=None, desc_class=None):
+
         result = requests.get(self.url)
         soup = BeautifulSoup(result.content, "html.parser")
-        h3s = soup.find_all("h3", {"class": "menu__items__title"})
-        menu_items = []
-        for h3 in h3s:
-            if h3.get_text().strip() not in excluded_headers:
-                current = h3.nextSibling
-                while current is not None and current.name != 'h3':
-                    if isinstance(current, Tag):
-                        items = current.find_all("div", {"class": "menu__item__name"})
-                        if items is not None:
-                            menu_items.extend([item.get_text().strip() for item in items])
-                    current = current.nextSibling
-        return menu_items
+        return super(Foodora, self).parse_page(soup,
+                                               header_elem="h3", header_elem_class="menu__items__title",
+                                               exclude_headers=exclude_headers,
+                                               food_wrapper="div", food_wrapper_class="menu__item__wrapper",
+                                               name_elem="div", name_class="menu__item__name",
+                                               desc_elem="div", desc_class="menu__item__description"
+                                               )
 
 
 class Panini(Foodora):
@@ -205,7 +252,7 @@ class Panini(Foodora):
 
     @lru_cache(32)
     def get(self, year, month, day):
-        return self.parse_page(["Mindre måltider", "Dryck"])
+        return self.parse_page(exclude_headers=["Mindre måltider", "Dryck"])
 
 
 class SenStreetKitchen(Foodora):
@@ -217,10 +264,18 @@ class SenStreetKitchen(Foodora):
 
     @lru_cache(32)
     def get(self, year, month, day):
-        return self.parse_page(["Smårätter", "Dryck"])
+        return self.parse_page(exclude_headers=["Smårätter", "Dryck"])
 
 
-RESTAURANTS = [Arsenalen(), Subway(), Eat(), Panini(), Wiggos(), SenStreetKitchen()]
+class Vapiano(NoDaily):
+    url = "http://se.vapiano.com/sv/meny/specials/"
+
+    @staticmethod
+    def name():
+        return "Vapiano"
+
+RESTAURANTS = [Arsenalen(), Subway(), Eat(), Panini(), Wiggos(), SenStreetKitchen(),
+               Vapiano()]
 
 
 def lunches(year, month, day, where=None):
