@@ -7,18 +7,33 @@ import requests
 __author__ = 'anna'
 
 
+class Item(object):
+    def __init__(self, name, desc=None):
+        self.name = name
+        self.desc = desc
+
+    def __str__(self):
+        if self.desc is not None:
+            return "{0}: _{1}_".format(self.name.title(), self.desc)
+        else:
+            return self.name
+
+
 class Lunch(object):
+    url = ""
+
     @staticmethod
     def name():
-        pass
+        return "Lunch"
 
     @staticmethod
     def minutes():
+        """ Minutes to walk from the office, according to Google Maps """
         return 0
 
     @lru_cache(32)
     def get(self, year, month, day):
-        pass
+        return []
 
     MONTHS = {'jan': 1,
               'feb': 2,
@@ -50,17 +65,15 @@ class Lunch(object):
             'fri': 5,
             'sat': 6,
             'sun': 7
-           }
+            }
 
 
 class NoDaily(Lunch):
-
     def get(self, year, month, day):
         return ["No daily menu available, see " + self.url]
 
 
 class Arsenalen(Lunch):
-
     url = "https://gastrogate.com/restaurang/arsenalen/page/3/"
 
     @staticmethod
@@ -89,11 +102,10 @@ class Arsenalen(Lunch):
             return None
         menu = menu_table.find_all('tbody')[num]
         menu_items = menu.find_all('td', {'class': 'td_title'})
-        return [item.get_text().strip() for item in menu_items]
+        return [Item(item.get_text().strip()) for item in menu_items]
 
 
 class Subway(Lunch):
-
     url = "http://www.subway.se"
 
     SUBS = ['American Steakhouse Melt',
@@ -114,11 +126,10 @@ class Subway(Lunch):
 
     def get(self, year, month, day):
         date = datetime.datetime(year, month, day)
-        return ["Sub of the day: " + self.SUBS[date.isoweekday()]]
+        return [Item("Sub of the day: " + self.SUBS[date.isoweekday()])]
 
 
 class Eat(Lunch):
-
     url = "http://eatrestaurant.se/dagens/"
     week_header = re.compile(r'v\. (\d+) ')
     day_header = re.compile(r'(Mån|Tis|Ons|Tors|Fre):')
@@ -161,7 +172,7 @@ class Eat(Lunch):
                                 found_day = True
                     else:
                         if found_day:
-                            items = [item.strip() for item in text.split('\n')]
+                            items = [Item(item.strip()) for item in text.split('\n')]
                             menu_items.extend(items)
 
         return menu_items
@@ -190,8 +201,10 @@ class HeaderListParser(object):
 
         headers = soup.find_all(header_elem, {"class": header_elem_class} if header_elem_class is not None else {})
         menu_items = []
+        if exclude_headers:
+            exclude_headers = [header.lower() for header in exclude_headers]
         for header in headers:
-            if header.get_text().strip() not in exclude_headers:
+            if header.get_text().strip().lower() not in exclude_headers:
                 current = header.nextSibling
                 while current is not None and current.name != header_elem:
                     if isinstance(current, Tag):
@@ -203,9 +216,9 @@ class HeaderListParser(object):
                                 desc = item.find(desc_elem, {"class": desc_class})
                                 if desc is not None:
                                     desc = desc.get_text().strip()
-                                    menu_items.append("{0}: _{1}_".format(name, desc))
+                                    menu_items.append(Item(name, desc))
                                 else:
-                                    menu_items.append(name)
+                                    menu_items.append(Item(name))
                     current = current.nextSibling
         return menu_items
 
@@ -227,7 +240,6 @@ class Wiggos(Lunch, HeaderListParser):
                    food_wrapper=None, food_wrapper_class=None,
                    name_elem=None, name_class=None,
                    desc_elem=None, desc_class=None):
-
         return super(Wiggos, self).parse_page(soup,
                                               header_elem="h2", exclude_headers=["Snacks", "Dryck"],
                                               food_wrapper="span", food_wrapper_class="foodmenuwrap",
@@ -251,7 +263,6 @@ class Foodora(Lunch, HeaderListParser):
                    food_wrapper=None, food_wrapper_class=None,
                    name_elem=None, name_class=None,
                    desc_elem=None, desc_class=None):
-
         result = requests.get(self.url)
         soup = BeautifulSoup(result.content, "html.parser")
         return super(Foodora, self).parse_page(soup,
@@ -319,13 +330,82 @@ class IchaIcha(Lunch):
         return 3
 
     def get(self, year, month, day):
-        return ["Nudlar: _Kokta äggnudlar med grönsaker_",
-                "Japanskt ris: _Ångat mellankornigt ris och grönsaker_",
-                "Lowcarb: _Strimlad zucchini (kyld) med babyspenat, broccoli och grönsaker._",
-                "Kyckling: _Ungsstek strimlad lårfilé från Svensk gårdskyckling_",
-                "Laxfilé: _Norsk superior-lax. Lätt saltad och tillagad i ugn_",
-                "Fläsksida: _Från Rocklunda gård. Rimmad och tillagad på låg temp._",
-                "Nötkött: _Rosastekt Highland beef, strip steak. Skottland._",
-                "Teriyaki: _Söt, mild, soja. Fettfri._",
-                "Ingefära: _Massor av ingefära!_",
-                "Spicy sour: _Pressad citron, chili._"]
+        return [Item("Nudlar", "Kokta äggnudlar med grönsaker"),
+                Item("Japanskt ris", "Ångat mellankornigt ris och grönsaker"),
+                Item("Lowcarb", " Strimlad zucchini (kyld) med babyspenat, broccoli och grönsaker."),
+                Item("Kyckling", " Ungsstek strimlad lårfilé från Svensk gårdskyckling"),
+                Item("Laxfilé", " Norsk superior-lax. Lätt saltad och tillagad i ugn"),
+                Item("Fläsksida", " Från Rocklunda gård. Rimmad och tillagad på låg temp."),
+                Item("Nötkött", " Rosastekt Highland beef, strip steak. Skottland."),
+                Item("Teriyaki", " Söt, mild, soja. Fettfri."),
+                Item("Ingefära", " Massor av ingefära!"),
+                Item("Spicy sour", " Pressad citron, chili.")]
+
+
+class Phils(Lunch):
+    url = "http://www.philsburger.se/#pmeny"
+
+    @staticmethod
+    def name():
+        return "Phils"
+
+    @staticmethod
+    def minutes():
+        return 10
+
+    @lru_cache(32)
+    def get(self, year, month, day):
+        result = requests.get(self.url)
+        soup = BeautifulSoup(result.content, "html.parser")
+        menu = soup.find("h4", {"class": "items-title"})
+        menu_items = []
+        n = menu.nextSibling
+        while n is not None and n.name != 'div':
+            n = n.nextSibling
+        for item in n.findAll("div", {"class": "food"}):
+            name_elem = item.find("h4", {"class": "title"})
+            desc = name_elem.parent.nextSibling.strip()
+            name = name_elem.next.strip()
+            menu_items.append(Item(name, desc))
+        return menu_items
+
+
+class Fridays(Lunch):
+    SPECIAL = ["Premium Burgers",
+               "Ribs Ribs Ribs",
+               "Steaks"]
+
+    @staticmethod
+    def name():
+        return "Fridays"
+
+    @staticmethod
+    def minutes():
+        return 1
+
+    @lru_cache(32)
+    def get(self, year, month, day):
+        isocal = datetime.date(year, month, day).isocalendar()
+        week = isocal[1] % 3
+        return [Item("Bacon Cheeseburger"), Item("Chicken Caesar Salad"), Item("Chicken Finger BLT Sandwich"),
+                Item("Crispy Chicken Tenders"), Item("Lemon Basil Salad"), Item("Buffalo Chicken Sandwich"),
+                Item("Jack Daniel's Burger"), Item("Romesco Grilled Vegetable Pasta"),
+                Item("Jack Daniel's Chicken Burger"), Item("Fridays Finest Falafel"),
+                Item("Tennessee BBQ Pulled Pork Sandwich"), Item("Creamy Buffalo Chicken Pasta"),
+                Item("Weekly Special: {0}".format(self.SPECIAL[week]))]
+
+
+class Prime(Foodora):
+    url = "https://www.foodora.se/restaurant/s8ci/prime-burger-birger-jarlsgatan"
+
+    @staticmethod
+    def name():
+        return "Prime"
+
+    @staticmethod
+    def minutes():
+        return 15
+
+    @lru_cache(32)
+    def get(self, year, month, day):
+        return self.parse_page(exclude_headers=["Side Orders", "Milkshakes", "Soft Drinks"])

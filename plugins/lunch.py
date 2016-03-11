@@ -1,10 +1,10 @@
-import json
 import random
 from slackbot.bot import listen_to
+from plugins.helpers import *
 from plugins.lunch_restaurants import *
 
 RESTAURANTS = [Arsenalen(), Subway(), Eat(), Panini(), Wiggos(), SenStreetKitchen(),
-               Vapiano(), IchaIcha()]
+               Vapiano(), IchaIcha(), Phils(), Fridays(), Prime()]
 
 
 def lunches(year, month, day, where=None):
@@ -20,16 +20,7 @@ def lunches(year, month, day, where=None):
 
 
 def restaurants():
-    return '\n'.join([" • " + restaurant.name() for restaurant in sorted(RESTAURANTS, key=lambda k: k.name())])
-
-
-def fallback(restaurant, items):
-    return "*{0}*\n {1}".format(restaurant, bulletize(items))
-
-
-def bulletize(items, bullet='•'):
-    newline = "\n {0} ".format(bullet)
-    return "{0} {1}".format(bullet, newline.join(items))
+    return ", ".join([restaurant.name() for restaurant in sorted(RESTAURANTS, key=lambda k: k.name())])
 
 
 @listen_to("^!lunch$")
@@ -63,16 +54,10 @@ def lunch_menu_command(message, restaurant):
             if len(menu['menu']) < 6:
                 message.send(fallback(r, menu['menu']))
             else:
-                attachments = [{
-                    'pretext': "*{0}*".format(r),
-                    'fallback': fallback(r, menu['menu'][0:3]),
-                    'text': bulletize(menu['menu']),
-                    'color': 'good',
-                    'mrkdwn_in': ['pretext', 'text']
-                }]
-                message.send_webapi('', json.dumps(attachments))
-    except:
+                message.send_webapi('', format_menu(r, menu['menu']))
+    except Exception as e:
         message.send("Something went wrong when scraping the restaurant page.")
+        print(e)
 
 
 LUNCH_SEARCH_DIST = re.compile(r'max_dist=(\d+)')
@@ -87,6 +72,7 @@ def lunch_search_command(message, query_string):
     show_items = False
 
     for query in queries:
+        query = query.strip()
         result = LUNCH_SEARCH_DIST.match(query)
         if result:
             dist = int(result.group(1))
@@ -104,14 +90,7 @@ def lunch_search_command(message, query_string):
         rs = [r for r in rs if r.name() in menus.keys()]
     if show_items:
         for r in rs:
-            name = r.name()
-            attachments = [{
-                'pretext': "*{0}*".format(name),
-                'fallback': fallback(name, menus[name]),
-                'text': bulletize(menus[name]),
-                'color': 'good',
-                'mrkdwn_in': ['pretext', 'text']
-            }]
-            message.send_webapi('', json.dumps(attachments))
+            message.send_webapi('', format_menu(r.name(), menus[r.name()]))
     else:
         message.send(bulletize([r.name() for r in rs]))
+
