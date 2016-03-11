@@ -4,7 +4,7 @@ from plugins.helpers import *
 from plugins.lunch_restaurants import *
 
 RESTAURANTS = [Arsenalen(), Subway(), Eat(), Panini(), Wiggos(), SenStreetKitchen(),
-               Vapiano(), IchaIcha(), Phils(), Fridays(), Prime()]
+               Vapiano(), IchaIcha(), Phils(), Fridays(), Prime(), Eggs()]
 
 
 def lunches(year, month, day, where=None):

@@ -13,8 +13,8 @@ class Item(object):
         self.desc = desc
 
     def __str__(self):
-        if self.desc is not None:
-            return "{0}: _{1}_".format(self.name.title(), self.desc)
+        if self.desc is not None and len(self.desc.strip()):
+            return "{0}: _{1}_".format(self.name, self.desc)
         else:
             return self.name
 
@@ -409,3 +409,19 @@ class Prime(Foodora):
     @lru_cache(32)
     def get(self, year, month, day):
         return self.parse_page(exclude_headers=["Side Orders", "Milkshakes", "Soft Drinks"])
+
+
+class Eggs(Foodora):
+    url = "https://www.foodora.se/restaurant/s6bo/eggs-inc"
+
+    @staticmethod
+    def name():
+        return "Eggs"
+
+    @staticmethod
+    def minutes():
+        return 5
+
+    @lru_cache(32)
+    def get(self, year, month, day):
+        return self.parse_page(exclude_headers=["Äggägg", "Dessert", "Dryck", "Extra", "Äggwrap"])
