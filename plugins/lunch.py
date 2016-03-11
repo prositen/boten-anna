@@ -83,7 +83,7 @@ def lunch_search_command(message, query_string):
         new_menus = dict()
         for r in rs:
             name = r.name()
-            menu = [item for item in menus[name]['menu'] if re.search(query, item, re.IGNORECASE)]
+            menu = [item for item in menus[name]['menu'] if item.search(query)]
             if len(menu):
                 new_menus[name] = menu
         menus = new_menus

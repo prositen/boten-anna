@@ -11,12 +11,23 @@ class Item(object):
     def __init__(self, name, desc=None):
         self.name = name
         self.desc = desc
+        if self.desc is not None:
+            self.desc = self.desc.strip()
+            if len(self.desc) == 0:
+                self.desc = None
 
     def __str__(self):
-        if self.desc is not None and len(self.desc.strip()):
+        if self.desc is not None:
             return "{0}: _{1}_".format(self.name, self.desc)
         else:
             return self.name
+
+    def search(self, query):
+        if re.search(query, self.name, re.IGNORECASE):
+            return True
+        if self.desc is not None and re.search(query, self.desc, re.IGNORECASE):
+            return True
+        return False
 
 
 class Lunch(object):
@@ -70,7 +81,7 @@ class Lunch(object):
 
 class NoDaily(Lunch):
     def get(self, year, month, day):
-        return ["No daily menu available, see " + self.url]
+        return [Item("No daily menu available",self.url)]
 
 
 class Arsenalen(Lunch):
@@ -332,14 +343,14 @@ class IchaIcha(Lunch):
     def get(self, year, month, day):
         return [Item("Nudlar", "Kokta äggnudlar med grönsaker"),
                 Item("Japanskt ris", "Ångat mellankornigt ris och grönsaker"),
-                Item("Lowcarb", " Strimlad zucchini (kyld) med babyspenat, broccoli och grönsaker."),
-                Item("Kyckling", " Ungsstek strimlad lårfilé från Svensk gårdskyckling"),
-                Item("Laxfilé", " Norsk superior-lax. Lätt saltad och tillagad i ugn"),
-                Item("Fläsksida", " Från Rocklunda gård. Rimmad och tillagad på låg temp."),
-                Item("Nötkött", " Rosastekt Highland beef, strip steak. Skottland."),
-                Item("Teriyaki", " Söt, mild, soja. Fettfri."),
-                Item("Ingefära", " Massor av ingefära!"),
-                Item("Spicy sour", " Pressad citron, chili.")]
+                Item("Lowcarb", "Strimlad zucchini (kyld) med babyspenat, broccoli och grönsaker."),
+                Item("Kyckling", "Ungsstek strimlad lårfilé från Svensk gårdskyckling"),
+                Item("Laxfilé", "Norsk superior-lax. Lätt saltad och tillagad i ugn"),
+                Item("Fläsksida", "Från Rocklunda gård. Rimmad och tillagad på låg temp."),
+                Item("Nötkött", "Rosastekt Highland beef, strip steak. Skottland."),
+                Item("Teriyaki", "Söt, mild, soja. Fettfri."),
+                Item("Ingefära", "Massor av ingefära!"),
+                Item("Spicy sour", "Pressad citron, chili.")]
 
 
 class Phils(Lunch):
