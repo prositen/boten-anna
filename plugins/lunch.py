@@ -13,7 +13,7 @@ def lunches(year, month, day, where=None):
     if where is not None:
         where = [w.strip().lower() for w in where.split(',')]
     for restaurant in RESTAURANTS:
-        if where is None or restaurant.name().lower() in where:
+        if restaurant.matches(where):
             menu = restaurant.get(year, month, day)
             if menu is not None:
                 payload[restaurant.name()] = {'menu': menu, 'url': restaurant.url}

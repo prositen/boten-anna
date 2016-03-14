@@ -46,6 +46,19 @@ class Lunch(object):
     def get(self, year, month, day):
         return []
 
+    @staticmethod
+    def nickname():
+        return []
+
+    def matches(self, where):
+        if where is None:
+            return True
+        if self.name().lower() in where:
+            return True
+        if any([nick.lower() in where for nick in self.nickname()]):
+            return True
+        return False
+
     MONTHS = {'jan': 1,
               'feb': 2,
               'mar': 3,
@@ -312,6 +325,10 @@ class SenStreetKitchen(Foodora):
     def minutes():
         return 5
 
+    @staticmethod
+    def nickname():
+        return ['Sen', 'Sen street']
+
     @lru_cache(32)
     def get(self, year, month, day):
         return self.parse_page(exclude_headers=["Smårätter", "Dryck"])
@@ -327,6 +344,10 @@ class Vapiano(NoDaily):
     @staticmethod
     def minutes():
         return 9
+
+    @staticmethod
+    def nickname():
+        return ['Vappe']
 
 
 class IchaIcha(Lunch):
@@ -351,6 +372,10 @@ class IchaIcha(Lunch):
                 Item("Teriyaki", "Söt, mild, soja. Fettfri."),
                 Item("Ingefära", "Massor av ingefära!"),
                 Item("Spicy sour", "Pressad citron, chili.")]
+
+    @staticmethod
+    def nickname():
+        return ['Icha', 'Icha Icha']
 
 
 class Phils(Lunch):
@@ -510,3 +535,19 @@ class Fattoush(Foodora):
     @lru_cache(32)
     def get(self, year, month, day):
         return self.parse_page(exclude_headers=["Dryck"])
+
+
+class LebanonMezaLounge(NoDaily):
+    url = "http://www.lebanonml.com"
+
+    @staticmethod
+    def name():
+        return "LebanonMezaLounge"
+
+    @staticmethod
+    def distance():
+        return 1
+
+    @staticmethod
+    def nickname():
+        return ['Libanesen']
