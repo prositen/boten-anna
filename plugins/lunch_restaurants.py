@@ -496,8 +496,8 @@ class Tures(Lunch):
         return menu_items
 
 
-class Fattoush(Lunch):
-    url = "http://www.fattoush.se/meny"
+class Fattoush(Foodora):
+    url = "https://www.foodora.se/restaurant/s0ya/fattoush"
 
     @staticmethod
     def name():
@@ -507,18 +507,6 @@ class Fattoush(Lunch):
     def distance():
         return 5
 
+    @lru_cache(32)
     def get(self, year, month, day):
-        result = requests.get(self.url)
-        soup = BeautifulSoup(result.content, "html.parser")
-        content = soup.find('div', {'id': 'categories'}).findAll('div', {'class': 'category'})
-        menu_items = []
-        for category in content:
-            category_text = category.find('h4').get_text().strip()
-            if category_text in ['Meze-tallrik', 'Catring buffé', 'Snacks', 'Dryck']:
-                continue
-            courses = category.parent.find('div', {'class': 'courses'}).findAll('div', {'class': 'media-body'})
-            for course in courses:
-                name = course.find('h4').get_text()
-                desc = course.find('p').get_text()
-                menu_items.append(Item(str("{0} - {1}".format(category_text, name)), str(desc)))
-        return menu_items
+        return self.parse_page(exclude_headers=["Dryck"])
