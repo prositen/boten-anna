@@ -436,3 +436,89 @@ class Eggs(Foodora):
     @lru_cache(32)
     def get(self, year, month, day):
         return self.parse_page(exclude_headers=["Äggägg", "Dessert", "Dryck", "Extra", "Äggwrap"])
+
+
+class Zocalo(Foodora):
+    url = "https://www.foodora.se/restaurant/s7ml/zocalo"
+
+    @staticmethod
+    def name():
+        return "Zocalo"
+
+    @staticmethod
+    def minutes():
+        return 5
+
+    @lru_cache(32)
+    def get(self, year, month, day):
+        return self.parse_page(exclude_headers=["Dryck"])
+
+
+class Tures(Lunch):
+    url = "http://www.brasserietures.se/"
+
+    @staticmethod
+    def name():
+        return "Tures"
+
+    @staticmethod
+    def minutes():
+        return 5
+
+    @lru_cache(32)
+    def get(self, year, month, day):
+        day_header = re.compile(r'(Mån|Tis|Ons|Tor|Fre)', re.IGNORECASE)
+        isocal = datetime.date(year, month, day).isocalendar()
+        weekday = isocal[2]
+        result = requests.get(self.url)
+        soup = BeautifulSoup(result.content, "html.parser")
+        rows = soup.find("table", {"class": "mceItemTable"}).findAll('tr')
+        found_day = False
+        menu_items = []
+        for row in rows:
+            td = row.findAll('td')[2]
+            td_text = td.get_text().strip()
+            day_result = day_header.match(td_text)
+            if day_result:
+                if found_day:
+                    found_day = False
+                elif weekday == self.DAYS[day_result.group(1).lower()]:
+                    found_day = True
+            else:
+                if td_text == "Klassiker":
+                    found_day = True
+                if found_day:
+                    ps = td.findAll('p')
+                    if len(ps):
+                        name = ps[0].get_text().strip()
+                        desc = ps[1].get_text().strip()
+                        menu_items.append(Item(name, desc))
+        return menu_items
+
+
+class Fattoush(Lunch):
+    url = "http://www.fattoush.se/meny"
+
+    @staticmethod
+    def name():
+        return "Fattoush"
+
+    @staticmethod
+    def distance():
+        return 5
+
+    def get(self, year, month, day):
+        result = requests.get(self.url)
+        soup = BeautifulSoup(result.content, "html.parser")
+        content = soup.find('div', {'id': 'categories'}).findAll('div', {'class': 'category'})
+        menu_items = []
+        for category in content:
+            category_text = category.find('h4').get_text().strip()
+            if category_text in ['Meze-tallrik', 'Catring buffé', 'Snacks', 'Dryck']:
+                continue
+            courses = category.parent.find('div', {'class': 'courses'}).findAll('div', {'class': 'media-body'})
+            for course in courses:
+                name = course.find('h4').get_text()
+                desc = course.find('p').get_text()
+                menu_items.append(Item(str("{0} - {1}".format(category_text, name)), str(desc)))
+        return menu_items
