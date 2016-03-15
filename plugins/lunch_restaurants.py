@@ -551,3 +551,23 @@ class LebanonMezaLounge(NoDaily):
     @staticmethod
     def nickname():
         return ['Libanesen']
+
+
+class Box(NoDaily):
+    url = "http://saddesklunch.com/"
+
+    @staticmethod
+    def name():
+        return "Box"
+
+    @staticmethod
+    def distance():
+        return 0
+
+    def get(self, year, month, day):
+        return [Item(self.url)]
+
+    @staticmethod
+    def nickname():
+        return ['Låda', 'Sad desk lunch']
+

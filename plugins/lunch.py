@@ -1,11 +1,11 @@
 import random
-from slackbot.bot import listen_to
+from slackbot.bot import listen_to, respond_to
 from plugins.helpers import *
 from plugins.lunch_restaurants import *
 
 RESTAURANTS = [Arsenalen(), Subway(), Eat(), Panini(), Wiggos(), SenStreetKitchen(),
                Vapiano(), IchaIcha(), Phils(), Fridays(), Prime(), Eggs(), Zocalo(), Tures(),
-               Fattoush()]
+               Fattoush(), Box()]
 
 
 def lunches(year, month, day, where=None):
@@ -35,6 +35,8 @@ def lunch_command(message):
 
 @listen_to("^!lunch suggest$")
 @listen_to("^!lunch suggest (\d+)")
+@respond_to("^!lunch suggest$")
+@respond_to("^!lunch suggest (\d+)")
 def lunch_suggest_command(message, num=1):
     num = min(int(num), len(RESTAURANTS))
     names = ",".join([r.name() for r in random.sample(RESTAURANTS, int(num))])
@@ -42,11 +44,13 @@ def lunch_suggest_command(message, num=1):
 
 
 @listen_to("^!lunch list")
+@respond_to("^!lunch list")
 def lunch_list_command(message):
     message.send(restaurants())
 
 
 @listen_to("^!lunch menu (.*)")
+@respond_to("^!lunch menu (.*)")
 def lunch_menu_command(message, restaurant):
     today = datetime.datetime.today()
     try:
@@ -65,7 +69,8 @@ LUNCH_SEARCH_DIST = re.compile(r'max_dist=(\d+)')
 
 
 @listen_to("^!lunch search (.*)")
-def lunch_search_command(message, query_string):
+@respond_to("^!lunch search (.*)")
+def listen_to_lunch_search(message, query_string):
     today = datetime.datetime.today()
     menus = lunches(today.year, today.month, today.day)
     queries = query_string.split(";")
@@ -89,9 +94,11 @@ def lunch_search_command(message, query_string):
                 new_menus[name] = menu
         menus = new_menus
         rs = [r for r in rs if r.name() in menus.keys()]
-    if show_items:
+    if len(rs) == 0:
+        message.send('Found nothing')
+    elif show_items:
         for r in rs:
             message.send_webapi('', format_menu(r.name(), menus[r.name()]))
     else:
-        message.send(bulletize([r.name() for r in rs]))
+        return message.send(bulletize([r.name() for r in rs]))
 
