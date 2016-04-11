@@ -1,0 +1,32 @@
+from plugins.restaurants.common import Lunch, Item, add_restaurant
+
+__author__ = 'anna'
+
+
+@add_restaurant
+class IchaIcha(Lunch):
+    url = "http://www.ichaicha.se/menu/"
+
+    @staticmethod
+    def name():
+        return "IchaIcha"
+
+    @staticmethod
+    def minutes():
+        return 3
+
+    def get(self, year, month, day):
+        return [Item("Nudlar", "Kokta äggnudlar med grönsaker"),
+                Item("Japanskt ris", "Ångat mellankornigt ris och grönsaker"),
+                Item("Lowcarb", "Strimlad zucchini (kyld) med babyspenat, broccoli och grönsaker."),
+                Item("Kyckling", "Ungsstek strimlad lårfilé från Svensk gårdskyckling"),
+                Item("Laxfilé", "Norsk superior-lax. Lätt saltad och tillagad i ugn"),
+                Item("Fläsksida", "Från Rocklunda gård. Rimmad och tillagad på låg temp."),
+                Item("Nötkött", "Rosastekt Highland beef, strip steak. Skottland."),
+                Item("Teriyaki", "Söt, mild, soja. Fettfri."),
+                Item("Ingefära", "Massor av ingefära!"),
+                Item("Spicy sour", "Pressad citron, chili.")]
+
+    @staticmethod
+    def nickname():
+        return ['Icha', 'Icha Icha']

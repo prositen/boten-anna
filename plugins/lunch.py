@@ -1,11 +1,10 @@
+import datetime
 import random
 from slackbot.bot import listen_to, respond_to
+import re
 from plugins.helpers import *
-from plugins.lunch_restaurants import *
-
-RESTAURANTS = [Arsenalen(), Subway(), Eat(), Panini(), Wiggos(), SenStreetKitchen(),
-               Vapiano(), IchaIcha(), Phils(), Fridays(), Prime(), Eggs(), Zocalo(), Tures(),
-               Fattoush(), Box()]
+from plugins.restaurants.common import RESTAURANTS
+from plugins.restaurants import *
 
 
 def lunches(year, month, day, where=None):
@@ -20,7 +19,7 @@ def lunches(year, month, day, where=None):
     return payload
 
 
-def restaurants():
+def restaurant_list():
     return ", ".join([restaurant.name() for restaurant in sorted(RESTAURANTS, key=lambda k: k.name())])
 
 
@@ -46,7 +45,7 @@ def lunch_suggest_command(message, num=1):
 @listen_to("^!lunch list")
 @respond_to("^!lunch list")
 def lunch_list_command(message):
-    message.send(restaurants())
+    message.send(restaurant_list())
 
 
 @listen_to("^!lunch menu (.*)")
