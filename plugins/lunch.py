@@ -55,7 +55,9 @@ def lunch_menu_command(message, restaurant):
     try:
         menus = lunches(today.year, today.month, today.day, restaurant)
         for r, menu in menus.items():
-            if len(menu['menu']) < 6:
+            if len(menu['menu']) == 0:
+                message.send(fallback(r, ['Couldn\'t read menu on {0}'.format(menu['url'])]))
+            elif len(menu['menu']) < 6:
                 message.send(fallback(r, menu['menu']))
             else:
                 message.send_webapi('', format_menu(r, menu['menu']))
