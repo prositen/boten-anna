@@ -11,7 +11,6 @@ class LebanonMezaLounge(NoDaily):
     def name():
         return "LebanonMezaLounge"
 
-    @staticmethod
     def get(self, year, month, day):
         return [Item('Buffé', cost=120)]
 

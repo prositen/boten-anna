@@ -7,16 +7,17 @@ __author__ = 'anna'
 
 class MessageMock(object):
 
-    def send(self, message):
-        print(message)
+    def send(self, text):
+        print(text)
 
     def send_webapi(self, text, attachment=""):
         print(text, attachment)
 
 
 def main():
-    lunch_menu_command(MessageMock(), 'wiggos')
-    # lunch_search_command(MessageMock, 'max_cost=100')
+    #lunch_menu_command(MessageMock(), 'fridays')
+    #lunch_search_command(MessageMock(), 'max_cost=100')
+    lunch_menu_command(MessageMock(), 'eat')
     pass
 
 if __name__ == '__main__':

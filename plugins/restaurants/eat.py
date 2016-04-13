@@ -11,7 +11,7 @@ __author__ = 'anna'
 @add_restaurant
 class Eat(Lunch):
     url = "http://eatrestaurant.se/dagens/"
-    week_header = re.compile(r'v\. (\d+) ')
+    week_header = re.compile(r'v\.\s?(\d+) ')
     day_header = re.compile(r'(Mån|Tis|Ons|Tors|Fre):')
 
     @staticmethod

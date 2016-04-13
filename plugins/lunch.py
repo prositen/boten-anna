@@ -111,7 +111,8 @@ def lunch_search_command(message, query_string):
         menus = new_menus
         rs = [r for r in rs if r.name() in menus.keys()]
     if len(rs) == 0:
-        message.send('Found nothing')
+        message.send("Found nothing")
+
     elif show_items:
         for r in rs:
             message.send_webapi('', format_menu(r.name(), menus[r.name()]))

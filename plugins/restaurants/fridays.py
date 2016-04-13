@@ -31,4 +31,4 @@ class Fridays(Lunch):
                 Item("Jack Daniel's Burger", cost=99), Item("Romesco Grilled Vegetable Pasta", cost=99),
                 Item("Jack Daniel's Chicken Burger", cost=99), Item("Fridays Finest Falafel", cost=99),
                 Item("Tennessee BBQ Pulled Pork Sandwich", cost=99), Item("Creamy Buffalo Chicken Pasta", cost=99),
-                Item("Weekly Special: {0}".format(self.SPECIAL[week][0]), cost=self.special[week][1])]
+                Item("Weekly Special: {0}".format(self.SPECIAL[week][0]), cost=self.SPECIAL[week][1])]
