@@ -64,14 +64,14 @@ def lunch_list_command(message):
 def lunch_menu_command(message, restaurant):
     today = datetime.datetime.today()
     try:
-        menus = lunches(today.year, today.month, today.day, restaurant)
-        for r, menu in menus.items():
-            if len(menu['menu']) == 0:
-                message.send(fallback(r, ['Couldn\'t read menu on {0}'.format(menu['url'])]))
-            elif len(menu['menu']) < 6:
-                message.send(fallback(r, menu['menu']))
+        search_results = lunches(today.year, today.month, today.day, restaurant)
+        for s in search_results.values():
+            if len(s.menu) == 0:
+                message.send(fallback(s.name, ['Couldn\'t read menu on {0}'.format(s.url)]))
+            elif len(s.menu) < 6:
+                message.send(fallback(s.name, s.menu))
             else:
-                message.send_webapi('', format_menu(r, menu['menu']))
+                message.send_webapi('', format_menu(s.name, s.menu))
     except Exception as e:
         message.send("Something went wrong when scraping the restaurant page.")
         print(e)
