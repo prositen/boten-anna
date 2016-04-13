@@ -7,6 +7,17 @@ from plugins.restaurants.common import RESTAURANTS
 from plugins.restaurants import *
 
 
+class SearchResult(object):
+    def __init__(self, name, menu, url, distance):
+        self.name = name
+        self.menu = menu
+        self.url = url
+        self.distance = distance
+
+    def menu_as_string(self):
+        return ",".join([str(s) for s in self.menu])
+
+
 def lunches(year, month, day, where=None):
     payload = dict()
     if where is not None:
@@ -15,7 +26,7 @@ def lunches(year, month, day, where=None):
         if restaurant.matches(where):
             menu = restaurant.get(year, month, day)
             if menu is not None:
-                payload[restaurant.name()] = {'menu': menu, 'url': restaurant.url}
+                payload[restaurant.name()] = SearchResult(restaurant.name(), menu, restaurant.url, restaurant.minutes())
     return payload
 
 
@@ -70,13 +81,22 @@ LUNCH_SEARCH_DIST = re.compile(r'max_dist=(\d+)')
 LUNCH_SEARCH_COST = re.compile(r'max_cost=(\d+)')
 
 
+def filter_items(search_results, func):
+    new_results = dict()
+    for name, restaurant in search_results.items():
+        menu = restaurant.menu
+        menu_items = [item for item in menu if func(item)]
+        if len(menu_items):
+            new_results[name] = SearchResult(name, menu_items, restaurant.url, restaurant.distance)
+    return new_results
+
+
 @listen_to("^!lunch search (.*)")
 @respond_to("^!lunch search (.*)")
 def lunch_search_command(message, query_string):
     today = datetime.datetime.today()
-    menus = lunches(today.year, today.month, today.day)
+    search_results = lunches(today.year, today.month, today.day)
     queries = query_string.split(";")
-    rs = RESTAURANTS
     show_items = False
 
     for query in queries:
@@ -84,39 +104,26 @@ def lunch_search_command(message, query_string):
         result = LUNCH_SEARCH_DIST.match(query)
         if result:
             dist = int(result.group(1))
-            rs = [r for r in rs if r.minutes() <= dist]
+            search_results = filter_items(search_results, lambda x: x.distance <= dist)
             continue
 
         result = LUNCH_SEARCH_COST.match(query)
         if result:
-            new_menus = dict()
             show_items = True
             max_cost = int(result.group(1))
-            for r in rs:
-                name = r.name()
-                menu = [item for item in menus[name]['menu'] if item.match_cost(max_cost)]
-                if len(menu):
-                    new_menus[name] = menu
-            menus = new_menus
-            rs = [r for r in rs if r.name() in menus.keys()]
+            search_results = filter_items(search_results, lambda x: x.match_cost(max_cost))
             continue
 
         show_items = True
-        new_menus = dict()
-        for r in rs:
-            name = r.name()
-            menu = [item for item in menus[name]['menu'] if item.search(query)]
-            if len(menu):
-                new_menus[name] = menu
-        menus = new_menus
-        rs = [r for r in rs if r.name() in menus.keys()]
-    if len(rs) == 0:
+        search_results = filter_items(search_results, lambda x: x.search(query))
+
+    if len(search_results) == 0:
         message.send("Found nothing")
 
     elif show_items:
-        for r in rs:
-            message.send_webapi('', format_menu(r.name(), menus[r.name()]))
+        for s in search_results.values():
+            message.send_webapi('', format_menu(s.name, s.menu))
 
     else:
-        return message.send(bulletize([r.name() for r in rs]))
+        return message.send(bulletize([s.name for s in search_results]))
 

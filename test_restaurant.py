@@ -16,8 +16,8 @@ class MessageMock(object):
 
 def main():
     #lunch_menu_command(MessageMock(), 'fridays')
-    #lunch_search_command(MessageMock(), 'max_cost=100')
-    lunch_menu_command(MessageMock(), 'eat')
+    lunch_search_command(MessageMock(), 'chicken;max_cost=100')
+    # lunch_menu_command(MessageMock(), 'eat')
     pass
 
 if __name__ == '__main__':
