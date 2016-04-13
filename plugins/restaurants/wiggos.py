@@ -1,14 +1,12 @@
 from functools import lru_cache
-from bs4 import BeautifulSoup
-import requests
-from plugins.restaurants.common import Lunch, HeaderListParser, add_restaurant
+from plugins.restaurants.common import add_restaurant, Foodora, Item
 
 __author__ = 'anna'
 
 
 @add_restaurant
-class Wiggos(Lunch, HeaderListParser):
-    url = "http://wiggowraps.se/menus/huvudmeny/"
+class Wiggos(Foodora):
+    url = "https://www.foodora.se/restaurant/s1qa/wiggo-wraps-hornstull"
 
     @staticmethod
     def name():
@@ -18,21 +16,6 @@ class Wiggos(Lunch, HeaderListParser):
     def minutes():
         return 5
 
-    def parse_page(self, soup=None,
-                   header_elem="h3", header_elem_class="None",
-                   exclude_headers=None,
-                   food_wrapper=None, food_wrapper_class=None,
-                   name_elem=None, name_class=None,
-                   desc_elem=None, desc_class=None):
-        return super(Wiggos, self).parse_page(soup,
-                                              header_elem="h2", exclude_headers=["Snacks", "Dryck"],
-                                              food_wrapper="span", food_wrapper_class="foodmenuwrap",
-                                              name_elem="span", name_class="foodmenudesc",
-                                              desc_elem="span", desc_class="fooddesc")
-
     @lru_cache(32)
     def get(self, year, month, day):
-        result = requests.get(self.url)
-        soup = BeautifulSoup(result.content, "html.parser")
-        content = soup.find("div", {"class": "entry-content"})
-        return self.parse_page(content)
+        return self.parse_page(exclude_headers=["Dryck - Stilla", "Dryck - kolsyrad"])

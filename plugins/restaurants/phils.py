@@ -31,5 +31,9 @@ class Phils(Lunch):
             name_elem = item.find("h4", {"class": "title"})
             desc = name_elem.parent.nextSibling.strip()
             name = name_elem.next.strip()
-            menu_items.append(Item(name, desc))
+            cost_elem = name_elem.find("span")
+            cost = 0
+            if cost_elem is not None:
+                cost = int(cost_elem.get_text().split(':')[0])
+            menu_items.append(Item(name, desc, cost))
         return menu_items

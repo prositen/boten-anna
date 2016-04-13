@@ -36,5 +36,12 @@ class Arsenalen(Lunch):
             return None
         menu = menu_table.find_all('tbody')[num]
         menu_items = menu.find_all('td', {'class': 'td_title'})
-        return [Item(item.get_text().strip()) for item in menu_items]
+        items = []
+        for item in menu_items:
+            name = item.get_text().strip()
+            cost_elem = item.parent.find('td', {'class': 'td_price'})
+            cost = int(cost_elem.get_text().split(':')[0])
+            items.append(Item(name, cost=cost))
+        return items
+
 

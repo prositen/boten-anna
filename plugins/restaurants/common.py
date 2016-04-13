@@ -15,19 +15,26 @@ def add_restaurant(cls):
 
 
 class Item(object):
-    def __init__(self, name, desc=None):
+    def __init__(self, name, desc=None, cost=None):
         self.name = name
         self.desc = desc
+        if cost is None:
+            self.cost = 0
+        else:
+            self.cost = cost
+
         if self.desc is not None:
             self.desc = self.desc.strip()
             if len(self.desc) == 0:
                 self.desc = None
 
     def __str__(self):
+        s = [self.name]
+        if self.cost > 0:
+            s.append(" ({0} kr)".format(self.cost))
         if self.desc is not None:
-            return "{0}: _{1}_".format(self.name, self.desc)
-        else:
-            return self.name
+            s.append(": _{0}_".format(self.desc))
+        return "".join(s)
 
     def search(self, query):
         if re.search(query, self.name, re.IGNORECASE):
@@ -35,6 +42,9 @@ class Item(object):
         if self.desc is not None and re.search(query, self.desc, re.IGNORECASE):
             return True
         return False
+
+    def match_cost(self, max_cost):
+        return 0 < self.cost <= max_cost
 
 
 class Lunch(object):
@@ -123,7 +133,8 @@ class HeaderListParser(object):
                    exclude_headers=None,
                    food_wrapper=None, food_wrapper_class=None,
                    name_elem=None, name_class=None,
-                   desc_elem=None, desc_class=None):
+                   desc_elem=None, desc_class=None,
+                   cost_elem=None, cost_class=None):
 
         headers = soup.find_all(header_elem, {"class": header_elem_class} if header_elem_class is not None else {})
         menu_items = []
@@ -140,11 +151,16 @@ class HeaderListParser(object):
                             for item in items:
                                 name = item.find(name_elem, {"class": name_class}).get_text().strip()
                                 desc = item.find(desc_elem, {"class": desc_class})
+                                cost = item.parent.find(cost_elem, {"class": cost_class})
+                                if cost is not None:
+                                    cost = int(cost.get_text().split(':')[0])
+                                else:
+                                    cost = 0
                                 if desc is not None:
                                     desc = desc.get_text().strip()
-                                    menu_items.append(Item(name, desc))
+                                    menu_items.append(Item(name, desc, cost))
                                 else:
-                                    menu_items.append(Item(name))
+                                    menu_items.append(Item(name, cost=cost))
                     current = current.nextSibling
         return menu_items
 
@@ -157,7 +173,8 @@ class Foodora(Lunch, HeaderListParser):
                    exclude_headers=None,
                    food_wrapper=None, food_wrapper_class=None,
                    name_elem=None, name_class=None,
-                   desc_elem=None, desc_class=None):
+                   desc_elem=None, desc_class=None,
+                   cost_elem=None, cost_class=None):
         result = requests.get(self.url)
         soup = BeautifulSoup(result.content, "html.parser")
         return super(Foodora, self).parse_page(soup,
@@ -165,7 +182,8 @@ class Foodora(Lunch, HeaderListParser):
                                                exclude_headers=exclude_headers,
                                                food_wrapper="div", food_wrapper_class="menu__item__wrapper",
                                                name_elem="div", name_class="menu__item__name",
-                                               desc_elem="div", desc_class="menu__item__description"
+                                               desc_elem="div", desc_class="menu__item__description",
+                                               cost_elem="div", cost_class="menu__item__price"
                                                )
 
 

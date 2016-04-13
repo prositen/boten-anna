@@ -7,9 +7,11 @@ __author__ = 'anna'
 
 @add_restaurant
 class Fridays(Lunch):
-    SPECIAL = ["Premium Burgers",
-               "Ribs Ribs Ribs",
-               "Steaks"]
+    SPECIAL = [("Premium Burgers", 119),
+               ("Ribs Ribs Ribs", 119),
+               ("Steaks", 199)]
+
+    url = "https://fridays.se/"
 
     @staticmethod
     def name():
@@ -23,9 +25,10 @@ class Fridays(Lunch):
     def get(self, year, month, day):
         isocal = datetime.date(year, month, day).isocalendar()
         week = isocal[1] % 3
-        return [Item("Bacon Cheeseburger"), Item("Chicken Caesar Salad"), Item("Chicken Finger BLT Sandwich"),
-                Item("Crispy Chicken Tenders"), Item("Lemon Basil Salad"), Item("Buffalo Chicken Sandwich"),
-                Item("Jack Daniel's Burger"), Item("Romesco Grilled Vegetable Pasta"),
-                Item("Jack Daniel's Chicken Burger"), Item("Fridays Finest Falafel"),
-                Item("Tennessee BBQ Pulled Pork Sandwich"), Item("Creamy Buffalo Chicken Pasta"),
-                Item("Weekly Special: {0}".format(self.SPECIAL[week]))]
+        return [Item("Bacon Cheeseburger", cost=99), Item("Chicken Caesar Salad", cost=99),
+                Item("Chicken Finger BLT Sandwich", cost=99), Item("Crispy Chicken Tenders", cost=99),
+                Item("Lemon Basil Salad", cost=99), Item("Buffalo Chicken Sandwich", cost=99),
+                Item("Jack Daniel's Burger", cost=99), Item("Romesco Grilled Vegetable Pasta", cost=99),
+                Item("Jack Daniel's Chicken Burger", cost=99), Item("Fridays Finest Falafel", cost=99),
+                Item("Tennessee BBQ Pulled Pork Sandwich", cost=99), Item("Creamy Buffalo Chicken Pasta", cost=99),
+                Item("Weekly Special: {0}".format(self.SPECIAL[week][0]), cost=self.special[week][1])]

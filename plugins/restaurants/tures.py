@@ -31,7 +31,8 @@ class Tures(Lunch):
         found_day = False
         menu_items = []
         for row in rows:
-            td = row.findAll('td')[2]
+            tds = row.findAll('td')
+            td = tds[2]
             td_text = td.get_text().strip()
             day_result = day_header.match(td_text)
             if day_result:
@@ -40,12 +41,15 @@ class Tures(Lunch):
                 elif weekday == self.DAYS[day_result.group(1).lower()]:
                     found_day = True
             else:
-                if td_text == "Klassiker":
+                if td_text.lower() == "klassiker":
                     found_day = True
                 if found_day:
                     ps = td.findAll('p')
                     if len(ps):
                         name = ps[0].get_text().strip()
                         desc = ps[1].get_text().strip()
-                        menu_items.append(Item(name, desc))
+                        cost = tds[3].get_text().strip()
+                        if len(cost):
+                            cost = int(cost.split(':')[0])
+                            menu_items.append(Item(name, desc, cost))
         return menu_items

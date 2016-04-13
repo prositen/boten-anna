@@ -67,11 +67,12 @@ def lunch_menu_command(message, restaurant):
 
 
 LUNCH_SEARCH_DIST = re.compile(r'max_dist=(\d+)')
+LUNCH_SEARCH_COST = re.compile(r'max_cost=(\d+)')
 
 
 @listen_to("^!lunch search (.*)")
 @respond_to("^!lunch search (.*)")
-def listen_to_lunch_search(message, query_string):
+def lunch_search_command(message, query_string):
     today = datetime.datetime.today()
     menus = lunches(today.year, today.month, today.day)
     queries = query_string.split(";")
@@ -84,6 +85,20 @@ def listen_to_lunch_search(message, query_string):
         if result:
             dist = int(result.group(1))
             rs = [r for r in rs if r.minutes() <= dist]
+            continue
+
+        result = LUNCH_SEARCH_COST.match(query)
+        if result:
+            new_menus = dict()
+            show_items = True
+            max_cost = int(result.group(1))
+            for r in rs:
+                name = r.name()
+                menu = [item for item in menus[name]['menu'] if item.match_cost(max_cost)]
+                if len(menu):
+                    new_menus[name] = menu
+            menus = new_menus
+            rs = [r for r in rs if r.name() in menus.keys()]
             continue
 
         show_items = True
@@ -100,6 +115,7 @@ def listen_to_lunch_search(message, query_string):
     elif show_items:
         for r in rs:
             message.send_webapi('', format_menu(r.name(), menus[r.name()]))
+
     else:
         return message.send(bulletize([r.name() for r in rs]))
 

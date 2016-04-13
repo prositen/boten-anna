@@ -26,4 +26,4 @@ class Subway(Lunch):
 
     def get(self, year, month, day):
         date = datetime.datetime(year, month, day)
-        return [Item("Sub of the day: " + self.SUBS[date.isoweekday()])]
+        return [Item("Sub of the day (15 cm): " + self.SUBS[date.isoweekday()], cost=35)]
