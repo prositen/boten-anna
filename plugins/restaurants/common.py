@@ -111,7 +111,7 @@ class Lunch(object):
 
 class NoDaily(Lunch):
     def get(self, year, month, day):
-        return [Item("No daily menu available",self.url)]
+        return [Item("No daily menu available", self.url)]
 
 
 class HeaderListParser(object):
@@ -121,6 +121,7 @@ class HeaderListParser(object):
     <B class="b">
         <C class="c">Food item</C>
         <D class="d">Food description</D>
+        <E class="e">Food cost</D>
         ...
     </B>
     ...
