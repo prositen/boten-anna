@@ -16,7 +16,7 @@ class LebanonMezaLounge(NoDaily):
 
     @staticmethod
     def distance():
-        return 1
+        return 6
 
     @staticmethod
     def nickname():

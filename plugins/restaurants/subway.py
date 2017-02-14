@@ -22,7 +22,7 @@ class Subway(Lunch):
 
     @staticmethod
     def minutes():
-        return 7
+        return 9
 
     def get(self, year, month, day):
         date = datetime.datetime(year, month, day)

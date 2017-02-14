@@ -19,7 +19,7 @@ class Fridays(Lunch):
 
     @staticmethod
     def minutes():
-        return 1
+        return 8
 
     @lru_cache(32)
     def get(self, year, month, day):

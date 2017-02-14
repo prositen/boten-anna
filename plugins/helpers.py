@@ -12,13 +12,13 @@ def bulletize(items, bullet='•'):
     return "{0} {1}".format(bullet, newline.join([str(item) for item in items]))
 
 
-def format_menu(name, items):
+def format_menu(name, distance, items):
     if len(items) > 3:
         fallback_items = items[0:3]
     else:
         fallback_items = items
     attachments = [{
-        'pretext': "*{0}*".format(name),
+        'pretext': "*{} ({} min)*".format(name, distance),
         'fallback': fallback(name, fallback_items),
         'text': bulletize(items),
         'color': 'good',

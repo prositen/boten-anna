@@ -18,7 +18,7 @@ class Tures(Lunch):
 
     @staticmethod
     def minutes():
-        return 5
+        return 11
 
     @lru_cache(32)
     def get(self, year, month, day):

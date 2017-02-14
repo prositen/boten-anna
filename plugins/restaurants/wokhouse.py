@@ -17,7 +17,7 @@ class Wokhouse(Lunch, HeaderListParser):
 
     @staticmethod
     def minutes():
-        return 5
+        return 8
 
     @lru_cache(32)
     def get(self, year, month, day):

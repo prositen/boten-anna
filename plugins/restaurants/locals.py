@@ -16,7 +16,7 @@ class Locals(NoDaily):
 
     @staticmethod
     def minutes():
-        return 1
+        return 16
 
     @lru_cache(32)
     def get(self, year, month, day):

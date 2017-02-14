@@ -10,9 +10,9 @@ __author__ = 'anna'
 
 @add_restaurant
 class Eat(Lunch):
-    url = "http://eatrestaurant.se/dagens/"
+    url = "http://eatrestaurant.se/dagens/?redirect=true"
     week_header = re.compile(r'v\.\s?(\d+) ')
-    day_header = re.compile(r'(Mån|Tis|Ons|Tors|Fre):')
+    day_header = re.compile(r'(Mån|Tis|Ons|Tors|Fre)(dag)?:')
 
     @staticmethod
     def name():
@@ -20,7 +20,7 @@ class Eat(Lunch):
 
     @staticmethod
     def minutes():
-        return 5
+        return 12
 
     @lru_cache(32)
     def get(self, year, month, day):

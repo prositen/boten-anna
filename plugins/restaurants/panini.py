@@ -14,7 +14,7 @@ class Panini(Foodora):
 
     @staticmethod
     def minutes():
-        return 1
+        return 7
 
     @lru_cache(32)
     def get(self, year, month, day):

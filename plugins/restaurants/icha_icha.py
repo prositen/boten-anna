@@ -13,7 +13,7 @@ class IchaIcha(Lunch):
 
     @staticmethod
     def minutes():
-        return 3
+        return 10
 
     def get(self, year, month, day):
         return [Item("Nudlar", "Kokta äggnudlar med grönsaker"),

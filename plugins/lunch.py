@@ -69,9 +69,9 @@ def lunch_menu_command(message, restaurant):
             if len(s.menu) == 0:
                 message.send(fallback(s.name, ['Couldn\'t read menu on {0}'.format(s.url)]))
             elif len(s.menu) < 6:
-                message.send(fallback(s.name, s.menu))
+                message.send(fallback("{} ({} min)". format(s.name, s.distance), s.menu))
             else:
-                message.send_webapi('', format_menu(s.name, s.menu))
+                message.send_webapi('', format_menu(s.name, s.distance, s.menu))
     except Exception as e:
         message.send("Something went wrong when scraping the restaurant page.")
         print(e)

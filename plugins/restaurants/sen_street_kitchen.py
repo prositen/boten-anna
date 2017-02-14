@@ -14,7 +14,7 @@ class SenStreetKitchen(Foodora):
 
     @staticmethod
     def minutes():
-        return 5
+        return 8
 
     @staticmethod
     def nickname():

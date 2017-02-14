@@ -40,7 +40,7 @@ class Arsenalen(Lunch):
         for item in menu_items:
             name = item.get_text().strip()
             cost_elem = item.parent.find('td', {'class': 'td_price'})
-            cost = int(cost_elem.get_text().split(':')[0])
+            cost = int(cost_elem.get_text().split('k')[0])
             items.append(Item(name, cost=cost))
         return items
 

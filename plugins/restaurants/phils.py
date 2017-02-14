@@ -16,7 +16,7 @@ class Phils(Lunch):
 
     @staticmethod
     def minutes():
-        return 10
+        return 16
 
     @lru_cache(32)
     def get(self, year, month, day):
