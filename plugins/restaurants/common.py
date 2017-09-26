@@ -179,12 +179,12 @@ class Foodora(Lunch, HeaderListParser):
         result = requests.get(self.url)
         soup = BeautifulSoup(result.content, "html.parser")
         return super(Foodora, self).parse_page(soup,
-                                               header_elem="h3", header_elem_class="menu__items__title",
+                                               header_elem="div", header_elem_class="dish-category-header",
                                                exclude_headers=exclude_headers,
-                                               food_wrapper="div", food_wrapper_class="menu__item__wrapper",
-                                               name_elem="div", name_class="menu__item__name",
-                                               desc_elem="div", desc_class="menu__item__description",
-                                               cost_elem="div", cost_class="menu__item__price"
+                                               food_wrapper="div", food_wrapper_class="dish-info",
+                                               name_elem="h3", name_class="dish-name",
+                                               desc_elem="p", desc_class="dish-description",
+                                               cost_elem="span", cost_class="price"
                                                )
 
 
