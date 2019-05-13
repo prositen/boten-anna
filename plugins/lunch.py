@@ -24,7 +24,10 @@ def lunches(year, month, day, where=None):
         where = [w.strip().lower() for w in where.split(',')]
     for restaurant in RESTAURANTS:
         if restaurant.matches(where):
-            menu = restaurant.get(year, month, day)
+            try:
+                menu = restaurant.get(year, month, day)
+            except Exception as e:
+                raise
             if menu is not None:
                 payload[restaurant.name()] = SearchResult(restaurant.name(), menu, restaurant.url, restaurant.minutes())
     return payload
@@ -122,7 +125,7 @@ def lunch_search_command(message, query_string):
 
     elif show_items:
         for s in search_results.values():
-            message.send_webapi('', format_menu(s.name, s.menu))
+            message.send_webapi('', format_menu(s.name, s.distance, s.menu))
 
     else:
         return message.send(bulletize([s.name for s in search_results]))

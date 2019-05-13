@@ -6,7 +6,7 @@ __author__ = 'anna'
 
 @add_restaurant
 class Panini(Foodora):
-    url = "https://www.foodora.se/restaurant/hk5l/panini-hamngatan-15"
+    url = "https://www.foodora.se/restaurant/s1qg/panini-garnisonen"
 
     @staticmethod
     def name():
@@ -14,8 +14,8 @@ class Panini(Foodora):
 
     @staticmethod
     def minutes():
-        return 7
+        return 2
 
     @lru_cache(32)
     def get(self, year, month, day):
-        return self.parse_page(exclude_headers=["Mindre måltider", "Dryck"])
+        return self.parse_page(exclude_headers=["Mindre måltider", "Extra dressing", "Dryck"])

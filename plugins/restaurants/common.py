@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from functools import lru_cache
 import re
 from bs4 import Tag, BeautifulSoup
@@ -130,17 +131,21 @@ class HeaderListParser(object):
     url = ""
 
     def parse_page(self, soup=None,
-                   header_elem="h3", header_elem_class=None,
+                   header_elem="h3", header_elem_class=None, header_elem_id=None,
                    exclude_headers=None,
                    food_wrapper=None, food_wrapper_class=None,
                    name_elem=None, name_class=None,
                    desc_elem=None, desc_class=None,
                    cost_elem=None, cost_class=None):
 
-        headers = soup.find_all(header_elem, {"class": header_elem_class} if header_elem_class is not None else {})
+        header_attribs = dict()
+        if header_elem_id:
+            header_attribs['id'] = header_elem_id
+        if header_elem_class:
+            header_attribs['class'] = header_elem_class
+        headers = soup.find_all(header_elem, header_attribs)
         menu_items = []
-        if exclude_headers:
-            exclude_headers = [header.lower() for header in exclude_headers]
+        exclude_headers = [header.lower() for header in exclude_headers] if exclude_headers else []
         for header in headers:
             if header.get_text().strip().lower() not in exclude_headers:
                 current = header.nextSibling
@@ -154,7 +159,7 @@ class HeaderListParser(object):
                                 desc = item.find(desc_elem, {"class": desc_class})
                                 cost = item.parent.find(cost_elem, {"class": cost_class})
                                 if cost is not None:
-                                    cost = int(cost.get_text().split(':')[0])
+                                    cost = int(cost.get_text().strip().split()[0], 10)
                                 else:
                                     cost = 0
                                 if desc is not None:
@@ -170,7 +175,7 @@ class Foodora(Lunch, HeaderListParser):
     url = ""
 
     def parse_page(self, soup=None,
-                   header_elem="h3", header_elem_class=None,
+                   header_elem="h3", header_elem_class=None, header_elem_id=None,
                    exclude_headers=None,
                    food_wrapper=None, food_wrapper_class=None,
                    name_elem=None, name_class=None,
