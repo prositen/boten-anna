@@ -197,6 +197,11 @@ class Foodora(Lunch, HeaderListParser):
 class Kvartersmenyn(Lunch):
     url = ''
 
+    @staticmethod
+    def parse_price(text):
+        name_cost = text.split(':')[0].split()
+        return ' '.join(name_cost[:-1]), int(name_cost[-1], 10)
+
     @lru_cache(32)
     def get(self, year, month, day):
         result = requests.get(self.url)
@@ -209,14 +214,14 @@ class Kvartersmenyn(Lunch):
         default_cost = 0
         try:
             l = list(cost_elem)
-            default_cost = int((l[1].get_text().split()[1].split(':')[0]), 10)
+            _, default_cost = self.parse_price(l[1].get_text())
         except IndexError:
             pass
 
         menu = soup.find('div', {'class': 'meny'})
         day_ok = False
         name = ''
-
+        cost = default_cost
         for item in menu.children:
             if isinstance(item, Tag):
                 t = item.get_text().strip()
@@ -229,22 +234,16 @@ class Kvartersmenyn(Lunch):
             else:
                 if day_ok:
                     if not name:
-                        sp = item.split()
-                        if sp[-1] == ':-':
-                            cost = int(sp[-2], 10)
-                            name = ' '.join(sp[:-2])
-                        else:
-                            if sp[-1].endswith(':-'):
-                                cost = int(sp[-1][:-2])
-                            else:
-                                cost = default_cost
-                            name = ' '.join(sp[:-1])
+                        name, cost = self.parse_price(item)
+
                     else:
                         menu_items.append(Item(name=name,
                                                desc=str(item),
                                                cost=cost))
                         name = ''
+                        cost = default_cost
         return menu_items
+
 
 class Box(NoDaily):
     url = "http://saddesklunch.com/"
