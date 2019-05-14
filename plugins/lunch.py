@@ -43,7 +43,7 @@ def lunch_command(message):
                     "!lunch suggest - pick a random restaurant",
                     "!lunch menu <restaurant> - show menu for the selected restaurant(s)",
                     "!lunch search <query>;<<query> - text search in menu, + special operator max_dist=X"]
-    message.send("\n".join(command_help))
+    message.send_webapi("\n".join(command_help))
 
 
 @listen_to("^!lunch suggest$")
@@ -59,7 +59,7 @@ def lunch_suggest_command(message, num=1):
 @listen_to("^!lunch list")
 @respond_to("^!lunch list")
 def lunch_list_command(message):
-    message.send(restaurant_list())
+    message.send_webapi(restaurant_list())
 
 
 @listen_to("^!lunch menu (.*)")
@@ -70,13 +70,13 @@ def lunch_menu_command(message, restaurant):
         search_results = lunches(today.year, today.month, today.day, restaurant)
         for s in search_results.values():
             if len(s.menu) == 0:
-                message.send(fallback(s.name, ['Couldn\'t read menu on {0}'.format(s.url)]))
+                message.send_webapi(fallback(s.name, ['Couldn\'t read menu on {0}'.format(s.url)]))
             elif len(s.menu) < 6:
-                message.send(fallback("{} ({} min)". format(s.name, s.distance), s.menu))
+                message.send_webapi(fallback("{} ({} min)". format(s.name, s.distance), s.menu))
             else:
                 message.send_webapi('', format_menu(s.name, s.distance, s.menu))
     except Exception as e:
-        message.send("Something went wrong when scraping the restaurant page.")
+        message.send_webapi("Something went wrong when scraping the restaurant page.")
         print(e)
 
 
@@ -121,12 +121,12 @@ def lunch_search_command(message, query_string):
         search_results = filter_items(search_results, lambda x: x.search(query))
 
     if len(search_results) == 0:
-        message.send("Found nothing")
+        message.send_webapi("Found nothing")
 
     elif show_items:
         for s in search_results.values():
             message.send_webapi('', format_menu(s.name, s.distance, s.menu))
 
     else:
-        return message.send(bulletize([s.name for s in search_results]))
+        return message.send_webapi(bulletize([s.name for s in search_results]))
 
