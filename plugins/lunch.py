@@ -39,6 +39,8 @@ def restaurant_list():
 
 @listen_to("^!lunch$")
 @listen_to("^!lunch help$")
+@respond_to("^!lunch$")
+@respond_to("^!lunch help$")
 def lunch_command(message):
     command_help = ["!lunch help - show this text",
                     "!lunch list - shows all restaurants",
