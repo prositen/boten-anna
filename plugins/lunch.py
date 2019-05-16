@@ -38,8 +38,10 @@ def restaurant_list():
 
 
 @listen_to("^!lunch$")
+@listen_to("^!lunch help$")
 def lunch_command(message):
-    command_help = ["!lunch list - shows all restaurants",
+    command_help = ["!lunch help - show this text",
+                    "!lunch list - shows all restaurants",
                     "!lunch suggest - pick a random restaurant",
                     "!lunch menu <restaurant> - show menu for the selected restaurant(s)",
                     "!lunch search <query>;<<query> - text search in menu, + special operator max_dist=X"]
