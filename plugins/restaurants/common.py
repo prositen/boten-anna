@@ -161,9 +161,9 @@ class HeaderListParser(object):
         include_headers = include_headers or [header.get_text() for header in headers]
         include_headers = [header.lower() for header in include_headers]
         for header in headers:
-            header_text = header.get_text().strip().lower()
+            header_text = header.get_text().strip().split('\n')[0].strip().lower()
             if header_text in include_headers and header_text not in exclude_headers:
-                current = header.parent.parent.nextSibling
+                current = header.nextSibling
                 while current is not None and current.name != header_elem:
                     if isinstance(current, Tag):
                         items = current.find_all(food_wrapper,
@@ -197,7 +197,7 @@ class Foodora(Lunch, HeaderListParser):
         result = requests.get(self.url)
         soup = BeautifulSoup(result.content, "html.parser")
         return super(Foodora, self).parse_page(soup,
-                                               header_elem="h2", header_elem_class="dish-category-title",
+                                               header_elem="div", header_elem_class="dish-category-header",
                                                exclude_headers=exclude_headers,
                                                include_headers=include_headers,
                                                food_wrapper="div", food_wrapper_class="dish-info",
