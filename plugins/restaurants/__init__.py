@@ -1,2 +1,2 @@
-__all__ = ['cassi', 'dc_catering', 'elverket', 'kmarkt',
+__all__ = ['bap', 'cassi', 'dc_catering', 'east_india', 'elverket', 'kmarkt',
            'loscudetto',  'panini', 'phils']

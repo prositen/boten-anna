@@ -131,9 +131,19 @@ class HeaderListParser(object):
     """
     url = ""
 
+    def parse_cost(self, cost):
+        if cost is not None:
+            cost = cost.get_text()
+            cost = re.sub(r'[^0-9]', '', cost)
+            cost = int(cost, 10)
+        else:
+            cost = 0
+        return cost
+
     def parse_page(self, soup=None,
                    header_elem="h3", header_elem_class=None, header_elem_id=None,
                    exclude_headers=None,
+                   include_headers=None,
                    food_wrapper=None, food_wrapper_class=None,
                    name_elem=None, name_class=None,
                    desc_elem=None, desc_class=None,
@@ -146,10 +156,14 @@ class HeaderListParser(object):
             header_attribs['class'] = header_elem_class
         headers = soup.find_all(header_elem, header_attribs)
         menu_items = []
+
         exclude_headers = [header.lower() for header in exclude_headers] if exclude_headers else []
+        include_headers = include_headers or [header.get_text() for header in headers]
+        include_headers = [header.lower() for header in include_headers]
         for header in headers:
-            if header.get_text().strip().lower() not in exclude_headers:
-                current = header.nextSibling
+            header_text = header.get_text().strip().lower()
+            if header_text in include_headers and header_text not in exclude_headers:
+                current = header.parent.parent.nextSibling
                 while current is not None and current.name != header_elem:
                     if isinstance(current, Tag):
                         items = current.find_all(food_wrapper,
@@ -159,10 +173,7 @@ class HeaderListParser(object):
                                 name = item.find(name_elem, {"class": name_class}).get_text().strip()
                                 desc = item.find(desc_elem, {"class": desc_class})
                                 cost = item.parent.find(cost_elem, {"class": cost_class})
-                                if cost is not None:
-                                    cost = int(cost.get_text().strip().split()[0], 10)
-                                else:
-                                    cost = 0
+                                cost = self.parse_cost(cost)
                                 if desc is not None:
                                     desc = desc.get_text().strip()
                                     menu_items.append(Item(name, desc, cost))
@@ -178,6 +189,7 @@ class Foodora(Lunch, HeaderListParser):
     def parse_page(self, soup=None,
                    header_elem="h3", header_elem_class=None, header_elem_id=None,
                    exclude_headers=None,
+                   include_headers=None,
                    food_wrapper=None, food_wrapper_class=None,
                    name_elem=None, name_class=None,
                    desc_elem=None, desc_class=None,
@@ -185,8 +197,9 @@ class Foodora(Lunch, HeaderListParser):
         result = requests.get(self.url)
         soup = BeautifulSoup(result.content, "html.parser")
         return super(Foodora, self).parse_page(soup,
-                                               header_elem="div", header_elem_class="dish-category-header",
+                                               header_elem="h2", header_elem_class="dish-category-title",
                                                exclude_headers=exclude_headers,
+                                               include_headers=include_headers,
                                                food_wrapper="div", food_wrapper_class="dish-info",
                                                name_elem="h3", name_class="dish-name",
                                                desc_elem="p", desc_class="dish-description",
@@ -215,7 +228,7 @@ class Kvartersmenyn(Lunch):
         try:
             l = list(cost_elem)
             _, default_cost = self.parse_price(l[1].get_text())
-        except IndexError:
+        except (IndexError, ValueError):
             pass
 
         menu = soup.find('div', {'class': 'meny'})
