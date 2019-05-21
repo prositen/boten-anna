@@ -158,28 +158,28 @@ class HeaderListParser(object):
         menu_items = []
 
         exclude_headers = [header.lower() for header in exclude_headers] if exclude_headers else []
-        include_headers = include_headers or [header.get_text() for header in headers]
-        include_headers = [header.lower() for header in include_headers]
+        include_headers = [header.lower() for header in include_headers] if include_headers else []
         for header in headers:
             header_text = header.get_text().strip().split('\n')[0].strip().lower()
-            if header_text in include_headers and header_text not in exclude_headers:
-                current = header.nextSibling
-                while current is not None and current.name != header_elem:
-                    if isinstance(current, Tag):
-                        items = current.find_all(food_wrapper,
-                                                 {"class": food_wrapper_class} if food_wrapper_class is not None else {})
-                        if items is not None:
-                            for item in items:
-                                name = item.find(name_elem, {"class": name_class}).get_text().strip()
-                                desc = item.find(desc_elem, {"class": desc_class})
-                                cost = item.parent.find(cost_elem, {"class": cost_class})
-                                cost = self.parse_cost(cost)
-                                if desc is not None:
-                                    desc = desc.get_text().strip()
-                                    menu_items.append(Item(name, desc, cost))
-                                else:
-                                    menu_items.append(Item(name, cost=cost))
-                    current = current.nextSibling
+            if (include_headers and (header_text not in include_headers)) or header_text in exclude_headers:
+                continue
+            current = header.nextSibling
+            while current is not None and current.name != header_elem:
+                if isinstance(current, Tag):
+                    items = current.find_all(food_wrapper,
+                                             {"class": food_wrapper_class} if food_wrapper_class is not None else {})
+                    if items is not None:
+                        for item in items:
+                            name = item.find(name_elem, {"class": name_class}).get_text().strip()
+                            desc = item.find(desc_elem, {"class": desc_class})
+                            cost = item.parent.find(cost_elem, {"class": cost_class})
+                            cost = self.parse_cost(cost)
+                            if desc is not None:
+                                desc = desc.get_text().strip()
+                                menu_items.append(Item(name, desc, cost))
+                            else:
+                                menu_items.append(Item(name, cost=cost))
+                current = current.nextSibling
         return menu_items
 
 
