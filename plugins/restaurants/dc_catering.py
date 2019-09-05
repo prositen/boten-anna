@@ -17,7 +17,8 @@ class DCCatering(Lunch):
         return [
             Item('Pasta Carbonara', cost=90),
             Item('Sushi'),
-            Item('Yakiniku', cost=90)
+            Item('Yakiniku', cost=90),
+            Item('Pokébowl')
         ]
 
     @staticmethod

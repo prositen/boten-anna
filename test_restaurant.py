@@ -15,7 +15,7 @@ class MessageMock(object):
 
 
 def main():
-    lunch_menu_command(MessageMock(), 'Historiska')
+    lunch_menu_command(MessageMock(), 'sabis')
     #lunch_search_command(MessageMock(), 'chicken;max_cost=100')
     # lunch_menu_command(MessageMock(), 'eat')
     pass

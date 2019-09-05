@@ -24,11 +24,12 @@ class Historiska(Lunch):
     def get(self, year, month, day):
         isolocal = datetime.date(year, month, day).isocalendar()
         week = isolocal[1]
-        url = '{url}/{year}/{month:02}/{day:02}/dagens-lunch-v{week}-{year}/'.format(url=self.url,
-                                                                               year=year,
-                                                                               month=month,
-                                                                               day=day,
-                                                                               week=week)
+        url = '{url}/{year}/{month:02}/{day:02}/dagens-lunch-v{week}-{year}/' \
+            .format(url=self.url,
+                    year=year,
+                    month=month,
+                    day=day,
+                    week=week)
 
         result = requests.get(url)
         if result.status_code == 404:
@@ -36,7 +37,7 @@ class Historiska(Lunch):
         menu_items = []
         soup = BeautifulSoup(result.content, 'lxml')
         headers = soup.find("div", {"class": "post-content"}).findAll("h2")
-        day_re = re.compile('.* (\d+) \w+')
+        day_re = re.compile(r'.* (\d+) \w+')
         for header in headers:
             day_result = day_re.match(header.get_text())
             if day_result is not None:

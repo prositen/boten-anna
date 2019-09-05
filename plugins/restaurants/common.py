@@ -212,8 +212,10 @@ class Kvartersmenyn(Lunch):
 
     @staticmethod
     def parse_price(text):
-        name_cost = text.split(':')[0].split()
-        return ' '.join(name_cost[:-1]), int(name_cost[-1], 10)
+        if ':' in text:
+            name_cost = text.split(':')[0].split()
+            return ' '.join(name_cost[:-1]), int(name_cost[-1], 10)
+        return text, 0
 
     @lru_cache(32)
     def get(self, year, month, day):
@@ -248,8 +250,9 @@ class Kvartersmenyn(Lunch):
                 if day_ok:
                     if not name:
                         name, cost = self.parse_price(item)
+                        item = ''
 
-                    else:
+                    if name:
                         menu_items.append(Item(name=name,
                                                desc=str(item),
                                                cost=cost))

@@ -74,7 +74,7 @@ def lunch_menu_command(message, restaurant):
         search_results = lunches(today.year, today.month, today.day, restaurant)
         for s in search_results.values():
             if len(s.menu) == 0:
-                message.send_webapi(fallback(s.name, ['Couldn\'t read menu on {0}'.format(s.url)]))
+                message.send_webapi(fallback(s.name, ['No menu found today']))
             elif len(s.menu) < 6:
                 message.send_webapi(fallback("{} ({} min)". format(s.name, s.distance), s.menu))
             else:
