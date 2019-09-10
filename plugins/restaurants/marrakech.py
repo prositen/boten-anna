@@ -16,7 +16,7 @@ class Marrakech(Lunch):
 
     @staticmethod
     def minutes():
-        return 5
+        return 2
 
     @lru_cache(32)
     def get(self, year, month, day):
