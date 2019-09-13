@@ -23,7 +23,6 @@ class Samurai(Lunch):
     def get(self, year, month, day):
         result = requests.get(self.url)
         soup = BeautifulSoup(result.content, 'lxml')
-        menu_items = []
         default_cost = 120
         weekday = datetime.datetime(year, month, day).isoweekday()
 
@@ -34,9 +33,8 @@ class Samurai(Lunch):
             if text and len(text) >= 3:
                 text = text.lower()[:3]
                 if self.DAYS.get(text, 0) == weekday:
-                    while item is not None:
+                    while item.next_sibling is not None:
                         item = item.next_sibling
-
                         tag_name = item.name
                         if tag_name == 'h4':
                             break
@@ -54,8 +52,10 @@ class Samurai(Lunch):
                     continue
         for item in soup.find_all('h3'):
             if item.get_text().strip().lower() == 'veckans tips':
-                while item is not None:
+                while item.next_sibling is not None:
                     item = item.next_sibling
+                    if item is None:
+                        break
                     if item.name is None:
                         continue
                     elif item.name != 'p':

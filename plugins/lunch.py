@@ -26,15 +26,19 @@ def lunches(year, month, day, where=None):
         if restaurant.matches(where):
             try:
                 menu = restaurant.get(year, month, day)
+                if menu is not None:
+                    payload[restaurant.name()] = SearchResult(restaurant.name(), menu,
+                                                              restaurant.url, restaurant.minutes())
             except Exception as e:
-                raise
-            if menu is not None:
-                payload[restaurant.name()] = SearchResult(restaurant.name(), menu, restaurant.url, restaurant.minutes())
+                print(str(e))
+
     return payload
 
 
 def restaurant_list():
-    return ", ".join([restaurant.name() for restaurant in sorted(RESTAURANTS, key=lambda k: k.name())])
+    return ", ".join([restaurant.name()
+                      for restaurant in sorted(RESTAURANTS,
+                                               key=lambda k: k.name())])
 
 
 @listen_to("^!lunch$")
@@ -46,14 +50,15 @@ def lunch_command(message):
                     "!lunch list - shows all restaurants",
                     "!lunch suggest - pick a random restaurant",
                     "!lunch menu <restaurant> - show menu for the selected restaurant(s)",
-                    "!lunch search <query>;<<query> - text search in menu, + special operator max_dist=X"]
+                    "!lunch search <query>;<<query> - text search in menu, "
+                    "+ special operator max_dist=X"]
     message.send_webapi("\n".join(command_help))
 
 
-@listen_to("^!lunch suggest$")
-@listen_to("^!lunch suggest (\d+)")
-@respond_to("^!lunch suggest$")
-@respond_to("^!lunch suggest (\d+)")
+@listen_to(r"^!lunch suggest$")
+@listen_to(r"^!lunch suggest (\d+)")
+@respond_to(r"^!lunch suggest$")
+@respond_to(r"^!lunch suggest (\d+)")
 def lunch_suggest_command(message, num=1):
     num = min(int(num), len(RESTAURANTS))
     names = ",".join([r.name() for r in random.sample(RESTAURANTS, int(num))])
@@ -66,8 +71,8 @@ def lunch_list_command(message):
     message.send_webapi(restaurant_list())
 
 
-@listen_to("^!lunch menu (.*)")
-@respond_to("^!lunch menu (.*)")
+@listen_to(r"^!lunch menu (.*)")
+@respond_to(r"^!lunch menu (.*)")
 def lunch_menu_command(message, restaurant):
     today = datetime.datetime.today()
     try:
