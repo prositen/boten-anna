@@ -4,7 +4,7 @@ from functools import lru_cache
 import requests
 from bs4 import BeautifulSoup
 
-from plugins.restaurants.common import add_restaurant, Lunch, HeaderListParser, Item
+from plugins.restaurants.common import add_restaurant, Lunch, Item
 
 
 @add_restaurant
