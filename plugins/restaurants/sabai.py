@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 
 from plugins.restaurants.common import add_restaurant, Lunch, Item
 
+
 @add_restaurant
 class Sabai(Lunch):
     url = 'http://www.sabaisoong.se/lunch/'
@@ -12,6 +13,10 @@ class Sabai(Lunch):
     @staticmethod
     def name():
         return 'Sabai'
+
+    @staticmethod
+    def minutes():
+        return 11
 
     @staticmethod
     def nickname():
@@ -25,6 +30,7 @@ class Sabai(Lunch):
         menu_items = []
         headers = soup.find_all('h4')
         for item in headers:
+            desc = ''
             name = item.get_text().strip()
             while item.next_sibling is not None:
                 item = item.next_sibling
@@ -37,6 +43,7 @@ class Sabai(Lunch):
                     desc = item.get_text().strip()
                     if not desc:
                         continue
-            menu_items.append(Item(name=name,
-                                   desc=desc))
+            if name:
+                menu_items.append(Item(name=name,
+                                       desc=desc))
         return menu_items
