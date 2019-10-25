@@ -1,4 +1,5 @@
 import datetime
+import re
 from functools import lru_cache
 
 import requests
@@ -9,7 +10,7 @@ from plugins.restaurants.common import add_restaurant, Lunch, HeaderListParser, 
 
 @add_restaurant
 class Elverket(Lunch, HeaderListParser):
-    url = 'https://www.brasserieelverket.se/lunch/'
+    url = 'https://www.brasserieelverket.se/#Dlunch'
 
     @staticmethod
     def name():
@@ -24,31 +25,18 @@ class Elverket(Lunch, HeaderListParser):
         result = requests.get(self.url)
         soup = BeautifulSoup(result.content, 'lxml')
         menu_items = []
-        lunch_elem = soup.find('div', {'id': 'lunch'})
+        lunch_elem = soup.find('div', {'id': 'Dlunch', 'class': 'x-section'})
 
-        items = lunch_elem.find_all('p')
+        items = lunch_elem.find_all('div', {'class': 'x-column'})
         for item in items:
-            name = item.find('strong')
-            if name:
-                desc = item.find('br')
-                if desc:
-                    desc = desc.nextSibling
-                cost = item.find('span')
-
-            else:
-                item_info = list(item.next_siblings)
-                if len(item_info) > 3:
-                    name = item_info[0]
-                    desc = item_info[2]
-                    cost = item_info[3]
-                else:
-                    continue
-
-            name = name.get_text().strip()
-            desc = str(desc).strip() if desc else ''
-            cost = int(cost.get_text().strip(), 10)
-
-            menu_items.append(Item(name, desc, cost))
+            i = item.find_all('p')
+            if len(i) == 3:
+                name = i[0].get_text().strip()
+                desc = i[1].get_text().strip()
+                cost = i[2].get_text().strip()
+                if cost:
+                    cost = int(re.sub(r'\D', '', cost), 10)
+                menu_items.append(Item(name, desc, cost))
 
         return menu_items
 

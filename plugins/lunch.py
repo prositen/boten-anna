@@ -65,6 +65,13 @@ def lunch_suggest_command(message, num=1):
     lunch_menu_command(message, names)
 
 
+@listen_to(r"^!lunch all")
+@respond_to(r"^!lunch all")
+def lunch_show_all(message):
+    names = ",".join([r.name() for r in RESTAURANTS])
+    lunch_menu_command(message, names)
+
+
 @listen_to("^!lunch list")
 @respond_to("^!lunch list")
 def lunch_list_command(message):

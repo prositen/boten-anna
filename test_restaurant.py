@@ -1,4 +1,4 @@
-from plugins.lunch import lunch_menu_command, lunch_search_command
+from plugins.lunch import lunch_menu_command, lunch_search_command, lunch_show_all
 
 __author__ = 'anna'
 
@@ -16,7 +16,8 @@ class MessageMock(object):
 
 
 def main():
-    lunch_menu_command(MessageMock(), 'sabai')
+    lunch_menu_command(MessageMock(), 'elverket')
+    # lunch_show_all(MessageMock())
     # lunch_search_command(MessageMock(), 'chicken;max_cost=100')
     # lunch_menu_command(MessageMock(), 'eat')
     pass
